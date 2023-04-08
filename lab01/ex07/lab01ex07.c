@@ -17,8 +17,10 @@ IN ANY ORDER.
 #include <stdlib.h>
 #include <unistd.h>
 #include <math.h>
+#include <sys/wait.h>
 
-void fromDecimalToInteger(int dec,int n);
+int *fromDecimalToInteger(int dec, int n);
+int **vet;
 
 int main(int argc, char *argv[]){
 
@@ -28,54 +30,61 @@ int main(int argc, char *argv[]){
     }
 
     int n;
-    int *vet;
     int i;
     int bin;
+    int status;
 
     n = atoi (argv[1]);
 
-   // double numberOfProcesses = pow((double)2,(double)n);
-    
-    
+    double numberOfProcesses = pow((double)2,(double)n);
 
-    vet = (int *)malloc(n * sizeof(int));
+    vet = (int **)malloc(numberOfProcesses * sizeof(int *));
     if (vet == NULL) {
         printf("Allocatin Error.\n");
         exit(1);
     }
+    /*
+    for(int i=0;i<numberOfProcesses;i++){
+        vet[i] = (int *)malloc(n*sizeof(int));
+        if(vet[i]==NULL){
+            printf("Allocation Error\n");
+            exit(1);
+        }
+    }
+    */
 
     __pid_t pid;
 
 
-    for(i=0;i<8;i++){
+    for(i=0;i<numberOfProcesses;i++){
         pid=fork();
         if(pid==0){
             break;
         }
+        //printf("%d\n",pid);
     }
-
+    
     if(pid==0){
-        fromDecimalToInteger(i,n); 
+        vet[i] = fromDecimalToInteger(i,n);
+        for(int j=0;j<n;j++){
+            printf("%d",vet[i][j]);
+        }
+        printf("\n");
+        
     }
-
 
     return 0;
 }
 
-void fromDecimalToInteger(int dec, int n){
+int *fromDecimalToInteger(int dec, int n){
 
     int *outPut;
-    outPut = (int *)malloc(n* sizeof(int));
-    if(outPut == NULL){
-        printf("Allocation Error \n");
-        exit(EXIT_FAILURE);
-    }
+    outPut = (int *)malloc(n*sizeof(int));
 
+    int index = dec;
     for(int i=0;dec>0;i++){
         outPut[i]=dec%2;
         dec=dec/2;
-        printf("%d",outPut[i]);
     }
-
-    return;
+    return outPut;
 }
