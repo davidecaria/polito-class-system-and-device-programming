@@ -100,10 +100,12 @@ int main(int argc, char *argv[]){
   //Open last file to write
   ofstream output(argv[i+1]);
 
+  /* Waiting for the threads */
   for(auto& single : threads){
     single.join();
   }
 
+  /* Counting how many numbers have to be managed in total */
   int totNum=0;
   for(auto td : threadData){
     totNum += td.counter;
