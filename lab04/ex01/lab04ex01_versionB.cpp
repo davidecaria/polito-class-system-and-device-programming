@@ -64,7 +64,131 @@ run the program computing the elapsed times used by the process.
 Use the library "time.h" and the system call "clock" to evaluate the time
 (for more details, please search the WEB).
 
-
-
-
 */
+#include <iostream>
+#include <thread>
+#include <fstream>
+#include <list>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+thread *listOfThreads;
+
+struct ThreadData{
+  int *numbers;
+  int counter;
+};
+
+void threadFunction(char *fileName,int n,ThreadData *td);
+
+
+int main(int argc, char *argv[]){
+
+  vector<ThreadData> threadData(argc-2);
+  list<thread> threads;
+
+  // Open first n-1 files
+  int i;
+  for(i=0;i<argc-2;i++){
+    /* Generate the thread */
+    thread t(threadFunction,argv[i+1],i,&threadData[i]);
+    threads.push_back(move(t));
+  }
+
+  //Open last file to write
+  ofstream output(argv[i+1]);
+
+  /* Waiting for the threads */
+  for(auto& single : threads){
+    single.join();
+  }
+
+  /* Counting how many numbers have to be managed in total */
+  int totNum=0;
+  for(auto td : threadData){
+    totNum += td.counter;
+  }
+
+  vector<int> allNumbers(totNum);
+
+  /* I create an array to keep track of the positions */
+  int *carusel = (int *)malloc((argc-2)*sizeof(int));
+  for(int i=0;i<(argc-2);i++){
+    carusel[i]=0;
+  }
+
+  /* Printing the acquired numbers */
+  cout << "Acquired numbers: " << endl;
+  for(int z=0;z<(argc-2);z++){
+    for(int k=0;k<threadData[z].counter;k++){
+      cout << threadData[z].numbers[k] << " ";
+    }
+    cout << endl;
+  }
+
+  /* Merging algorithm */
+  cout << "Merging the numbers: " << endl;
+  int minLoc=INT8_MAX;
+  int destMax=0;
+  for(int i=0;i<totNum;i++){
+    for(int j=0;j<(argc-2);j++){
+      if(threadData[j].numbers[carusel[j]]<minLoc){
+        if(carusel[j] < threadData[j].counter){
+          minLoc = threadData[j].numbers[carusel[j]];
+          destMax = j;
+        }
+      }
+    }
+    carusel[destMax] += 1;
+    allNumbers[i] = minLoc;
+    minLoc = INT8_MAX;
+  }
+
+  for(auto n : allNumbers){
+    cout << n << " ";
+  }
+
+  cout << endl << "END"; 
+
+
+  return 1;
+}
+
+void threadFunction(char *fileName,int n,ThreadData *td){
+
+  ifstream fileInput(fileName);
+
+  if(!fileInput.is_open()){
+    cout << "Error opening file: " << fileName << endl;
+    return;
+  }
+
+  /* Saving the number of elements to allocate the vector */
+  fileInput >> td->counter;
+
+  td->numbers = (int *)malloc(td->counter * sizeof(int));
+  if(td->numbers==nullptr){
+    cout << "Error in allocating the array" << endl;
+  }
+
+  /* Reading the file */
+  int i=0;
+  while(fileInput >> td->numbers[i]){
+    i++;
+  }
+
+  /* Sorting the elements */
+  sort(td->numbers,td->numbers+td->counter);
+
+
+}
+
+
+
+
+
+
+
+
