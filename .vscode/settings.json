@@ -48,6 +48,7 @@
         "typeinfo": "cpp",
         "set": "cpp",
         "fstream": "cpp",
-        "thread": "cpp"
+        "thread": "cpp",
+        "unordered_set": "cpp"
     }
 }

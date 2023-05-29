@@ -71,6 +71,8 @@ Use the library "time.h" and the system call "clock" to evaluate the time
 #include <list>
 #include <vector>
 #include <algorithm>
+#include <map>
+
 
 using namespace std;
 
@@ -79,71 +81,38 @@ thread *listOfThreads;
 struct ThreadData{
   int *numbers;
   int counter;
+  int index;
 };
 
-void threadFunction(char *fileName,int n,ThreadData *td);
+vector<int> allNumbers;
 
+void threadFunction(char *fileName,int n,ThreadData *td);
+void merger(int index, vector<ThreadData> threadData);
 
 int main(int argc, char *argv[]){
 
   vector<ThreadData> threadData(argc-2);
-  list<thread> threads;
+  vector<thread> threads;
+  map<thread::id,ThreadData> threadsMap;
 
   // Open first n-1 files
   int i;
   for(i=0;i<argc-2;i++){
     /* Generate the thread */
+    threadData[i].index = i;
     thread t(threadFunction,argv[i+1],i,&threadData[i]);
     threads.push_back(move(t));
+    threadsMap.insert(make_pair(t.get_id(),threadData[i]));
   }
 
   //Open last file to write
   ofstream output(argv[i+1]);
 
   /* Waiting for the threads */
-  for(auto& single : threads){
-    single.join();
-  }
-
-  /* Counting how many numbers have to be managed in total */
-  int totNum=0;
-  for(auto td : threadData){
-    totNum += td.counter;
-  }
-
-  vector<int> allNumbers(totNum);
-
-  /* I create an array to keep track of the positions */
-  int *carusel = (int *)malloc((argc-2)*sizeof(int));
-  for(int i=0;i<(argc-2);i++){
-    carusel[i]=0;
-  }
-
-  /* Printing the acquired numbers */
-  cout << "Acquired numbers: " << endl;
-  for(int z=0;z<(argc-2);z++){
-    for(int k=0;k<threadData[z].counter;k++){
-      cout << threadData[z].numbers[k] << " ";
-    }
-    cout << endl;
-  }
-
-  /* Merging algorithm */
-  cout << "Merging the numbers: " << endl;
-  int minLoc=INT8_MAX;
-  int destMax=0;
-  for(int i=0;i<totNum;i++){
-    for(int j=0;j<(argc-2);j++){
-      if(threadData[j].numbers[carusel[j]]<minLoc){
-        if(carusel[j] < threadData[j].counter){
-          minLoc = threadData[j].numbers[carusel[j]];
-          destMax = j;
-        }
-      }
-    }
-    carusel[destMax] += 1;
-    allNumbers[i] = minLoc;
-    minLoc = INT8_MAX;
+  for(int k=0;k<threads.size();k++){
+    threads[k].join();
+    merger(threadData[k].index,threadData);
+    
   }
 
   for(auto n : allNumbers){
@@ -183,6 +152,32 @@ void threadFunction(char *fileName,int n,ThreadData *td){
   sort(td->numbers,td->numbers+td->counter);
 
 
+}
+
+void merger(int index, vector<ThreadData> threadData){
+
+  cout << "Thread: " << index << endl;
+  for(int i=0;i<threadData[index].counter;i++){
+      cout << threadData[index].numbers[i] << " ";
+    }
+    cout << endl;
+
+  int carusel=0;
+  if(allNumbers.size()==0){
+    allNumbers.assign(threadData[index].numbers,threadData[index].numbers+threadData[index].counter);
+    return;
+  }
+
+  for(vector<int>::iterator itr = allNumbers.begin(); itr < allNumbers.end(); itr++){
+    cout << *itr << " and " << threadData[index].numbers[carusel] << endl;
+    if(*itr > threadData[index].numbers[carusel]){
+      allNumbers.insert(itr,threadData[index].numbers[carusel]);
+      carusel++;
+    }
+  }
+
+
+  return;
 }
 
 
