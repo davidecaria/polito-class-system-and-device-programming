@@ -28,7 +28,7 @@ quer@quer-VirtualBox:~/current/sdp$ ./l01e05 3
 140051327870720 140051319478016 140051216324352 
 140051327870720 140051319478016 140051216324352 
 
-where the nubers are the thread identifiers displayed as long integer values.
+where the numbers are the thread identifiers displayed as long integer values.
 
 Suggestion
 ----------
