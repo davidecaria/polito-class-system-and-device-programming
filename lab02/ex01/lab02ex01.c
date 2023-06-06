@@ -83,6 +83,11 @@ static void *generator(void *arg){
     dataB.depth = data->depth;
     dataB.listOfAncestors = (long int *)malloc(dataB.currentDepth*sizeof(long int));
 
+    if(dataA.listOfAncestors==NULL || dataB.listOfAncestors==NULL){
+        fprintf(stdout,"Error in allocation\n");
+        return 0;
+    }
+
     int i;
     for(i=0;i<data->currentDepth;i++){
         dataA.listOfAncestors[i]=data->listOfAncestors[i];
